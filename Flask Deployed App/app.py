@@ -8,25 +8,32 @@ import numpy as np
 import torch
 import pandas as pd
 
-# -------------------- MODEL DOWNLOAD --------------------
+# -------------------- MODEL CONFIG --------------------
 MODEL_PATH = "plant_disease_model_1_latest.pt"
-
-if not os.path.exists(MODEL_PATH):
-    print("Downloading model...")
-    url = "https://drive.google.com/uc?id=1r4rYEvRE5lOyvg0ia8b2QrJQVKeofVgr"
-    gdown.download(url, MODEL_PATH, quiet=False)
+model = None   # 👈 IMPORTANT
 
 # -------------------- LOAD DATA --------------------
 disease_info = pd.read_csv('disease_info.csv', encoding='cp1252')
 supplement_info = pd.read_csv('supplement_info.csv', encoding='cp1252')
 
-# -------------------- LOAD MODEL --------------------
-model = CNN.CNN(39)
-model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
-model.eval()
+# -------------------- LOAD MODEL FUNCTION --------------------
+def load_model():
+    global model
+
+    if model is None:
+        if not os.path.exists(MODEL_PATH):
+            print("Downloading model...")
+            url = "https://drive.google.com/uc?id=1r4rYEvRE5lOyvg0ia8b2QrJQVKeofVgr"
+            gdown.download(url, MODEL_PATH, quiet=False)
+
+        model = CNN.CNN(39)
+        model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
+        model.eval()
 
 # -------------------- PREDICTION FUNCTION --------------------
 def prediction(image_path):
+    load_model()   # 👈 THIS FIXES EVERYTHING
+
     image = Image.open(image_path)
     image = image.resize((224, 224))
     input_data = TF.to_tensor(image)
