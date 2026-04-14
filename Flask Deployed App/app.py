@@ -1,6 +1,5 @@
 import os
 import gdown
-import threading
 from flask import Flask, render_template, request
 from PIL import Image
 import torchvision.transforms.functional as TF
@@ -11,7 +10,7 @@ import pandas as pd
 
 # -------------------- MODEL CONFIG --------------------
 MODEL_PATH = "plant_disease_model_1_latest.pt"
-model = None
+model = None   # 👈 IMPORTANT
 
 # -------------------- LOAD DATA --------------------
 disease_info = pd.read_csv('disease_info.csv', encoding='cp1252')
@@ -31,17 +30,9 @@ def load_model():
         model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
         model.eval()
 
-# -------------------- BACKGROUND LOADING --------------------
-def load_model_background():
-    load_model()
-
-# Start model loading in background
-threading.Thread(target=load_model_background).start()
-
 # -------------------- PREDICTION FUNCTION --------------------
 def prediction(image_path):
-    if model is None:
-        return -1   # model still loading
+    load_model()   # 👈 THIS FIXES EVERYTHING
 
     image = Image.open(image_path)
     image = image.resize((224, 224))
@@ -87,9 +78,6 @@ def submit():
 
         pred = prediction(file_path)
 
-        if pred == -1:
-            return "Model is loading, please try again in 30 seconds"
-
         title = disease_info['disease_name'][pred]
         description = disease_info['description'][pred]
         prevent = disease_info['Possible Steps'][pred]
@@ -124,3 +112,4 @@ def market():
 # -------------------- RUN --------------------
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=10000)
+
