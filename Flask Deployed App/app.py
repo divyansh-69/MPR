@@ -1,6 +1,5 @@
 import os
 import gdown
-import threading
 from flask import Flask, render_template, request
 from PIL import Image
 import torchvision.transforms.functional as TF
@@ -9,50 +8,43 @@ import numpy as np
 import torch
 import pandas as pd
 
-# -------------------- MODEL CONFIG --------------------
+# -------------------- MODEL DOWNLOAD AT STARTUP --------------------
 MODEL_PATH = "plant_disease_model_1_latest.pt"
-model = None
+
+if not os.path.exists(MODEL_PATH):
+    print("Downloading model at startup...")
+    url = "https://drive.google.com/uc?id=1r4rYEvRE5lOyvg0ia8b2QrJQVKeofVgr"
+    gdown.download(url, MODEL_PATH, quiet=False)
 
 # -------------------- LOAD DATA --------------------
 disease_info = pd.read_csv('disease_info.csv', encoding='cp1252')
 supplement_info = pd.read_csv('supplement_info.csv', encoding='cp1252')
 
-# -------------------- LOAD MODEL FUNCTION --------------------
-def load_model():
-    global model
-
-    if model is None:
-        if not os.path.exists(MODEL_PATH):
-            print("Downloading model...")
-            url = "https://drive.google.com/uc?id=1r4rYEvRE5lOyvg0ia8b2QrJQVKeofVgr"
-            gdown.download(url, MODEL_PATH, quiet=False)
-
-        model = CNN.CNN(39)
-        model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
-        model.eval()
-
-# -------------------- BACKGROUND LOADING --------------------
-def load_model_background():
-    load_model()
-
-# Start model loading in background
-threading.Thread(target=load_model_background).start()
+# -------------------- LOAD MODEL --------------------
+print("Loading model...")
+model = CNN.CNN(39)
+model.load_state_dict(torch.load(MODEL_PATH, map_location='cpu'))
+model.eval()
+print("Model loaded successfully!")
 
 # -------------------- PREDICTION FUNCTION --------------------
 def prediction(image_path):
-    if model is None:
-        return -1   # model still loading
+    try:
+        image = Image.open(image_path)
+        image = image.resize((224, 224))
 
-    image = Image.open(image_path)
-    image = image.resize((224, 224))
-    input_data = TF.to_tensor(image)
-    input_data = input_data.view((-1, 3, 224, 224))
+        input_data = TF.to_tensor(image)
+        input_data = input_data.view((-1, 3, 224, 224))
 
-    output = model(input_data)
-    output = output.detach().numpy()
-    index = np.argmax(output)
+        output = model(input_data)
+        output = output.detach().numpy()
 
-    return index
+        index = np.argmax(output)
+        return index
+
+    except Exception as e:
+        print("Prediction Error:", e)
+        return -1
 
 # -------------------- FLASK APP --------------------
 app = Flask(__name__)
@@ -76,40 +68,45 @@ def mobile_device_detected_page():
 @app.route('/submit', methods=['GET', 'POST'])
 def submit():
     if request.method == 'POST':
-        image = request.files['image']
-        filename = image.filename
+        try:
+            image = request.files['image']
+            filename = image.filename
 
-        upload_folder = "static/uploads"
-        os.makedirs(upload_folder, exist_ok=True)
+            upload_folder = "static/uploads"
+            os.makedirs(upload_folder, exist_ok=True)
 
-        file_path = os.path.join(upload_folder, filename)
-        image.save(file_path)
+            file_path = os.path.join(upload_folder, filename)
+            image.save(file_path)
 
-        pred = prediction(file_path)
+            pred = prediction(file_path)
 
-        if pred == -1:
-            return "Model is loading, please try again in 30 seconds"
+            if pred == -1:
+                return "Error processing image. Please try again."
 
-        title = disease_info['disease_name'][pred]
-        description = disease_info['description'][pred]
-        prevent = disease_info['Possible Steps'][pred]
-        image_url = disease_info['image_url'][pred]
+            title = disease_info['disease_name'][pred]
+            description = disease_info['description'][pred]
+            prevent = disease_info['Possible Steps'][pred]
+            image_url = disease_info['image_url'][pred]
 
-        supplement_name = supplement_info['supplement name'][pred]
-        supplement_image_url = supplement_info['supplement image'][pred]
-        supplement_buy_link = supplement_info['buy link'][pred]
+            supplement_name = supplement_info['supplement name'][pred]
+            supplement_image_url = supplement_info['supplement image'][pred]
+            supplement_buy_link = supplement_info['buy link'][pred]
 
-        return render_template(
-            'submit.html',
-            title=title,
-            desc=description,
-            prevent=prevent,
-            image_url=image_url,
-            pred=pred,
-            sname=supplement_name,
-            simage=supplement_image_url,
-            buy_link=supplement_buy_link
-        )
+            return render_template(
+                'submit.html',
+                title=title,
+                desc=description,
+                prevent=prevent,
+                image_url=image_url,
+                pred=pred,
+                sname=supplement_name,
+                simage=supplement_image_url,
+                buy_link=supplement_buy_link
+            )
+
+        except Exception as e:
+            print("Submit Error:", e)
+            return "Server error occurred. Please try again later."
 
 @app.route('/market', methods=['GET', 'POST'])
 def market():
