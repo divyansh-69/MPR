@@ -4,40 +4,218 @@ Supplement Market
 {% endblock pagetitle %}
 
 {% block body %}
+<style>
+    .market-hero {
+        text-align: center;
+        padding: 2rem 0 3rem 0;
+    }
 
-<br>
-<div class="row mb-5 text-center text-white">
-    <div class="col-lg-10 mx-auto">
-        <h1 class="display-4" style="padding-top: 2%;font-weight: 400;color: rgb(4, 54, 4);"><b>🛒Supplements🛒</b></h1>
-        <p class="lead" style="font-weight: 500;color: black;">Buy Supplements & Fertilizer at one place</p>
+    .market-title {
+        font-size: 3rem;
+        font-weight: 700;
+        color: white;
+        text-shadow: 2px 2px 20px rgba(0, 0, 0, 0.3);
+        margin-bottom: 1rem;
+    }
+
+    .market-subtitle {
+        font-size: 1.3rem;
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .product-card {
+        height: 100%;
+        padding: 0;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .product-card:hover {
+        transform: translateY(-15px) scale(1.02);
+    }
+
+    .product-image-wrapper {
+        position: relative;
+        height: 250px;
+        background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+    }
+
+    .product-image-wrapper img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: transform 0.5s ease;
+        position: relative;
+        z-index: 1;
+    }
+
+    .product-card:hover .product-image-wrapper img {
+        transform: scale(1.1);
+    }
+
+    .product-badge {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        z-index: 2;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .badge-healthy {
+        background: rgba(16, 185, 129, 0.9);
+        color: white;
+    }
+
+    .badge-diseased {
+        background: rgba(239, 68, 68, 0.9);
+        color: white;
+    }
+
+    .product-content {
+        padding: 2rem;
+    }
+
+    .product-type {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+
+    .product-name {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #047857;
+        margin-bottom: 1rem;
+        min-height: 60px;
+    }
+
+    .product-for {
+        color: #6b7280;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        min-height: 45px;
+    }
+
+    .buy-btn {
+        display: inline-block;
+        width: 100%;
+        padding: 0.9rem;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: white !important;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        text-align: center;
+        text-decoration: none !important;
+        position: relative;
+        z-index: 10;
+        pointer-events: auto;
+    }
+
+    .buy-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(16, 185, 129, 0.5);
+        color: white !important;
+        background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    }
+
+    .buy-btn:active {
+        transform: translateY(-1px);
+    }
+
+    .buy-btn i {
+        margin-right: 8px;
+    }
+
+    .product-grid {
+        animation-delay: 0.1s;
+    }
+</style>
+
+<div class="container my-5">
+    <!-- Hero Section -->
+    <div class="market-hero fade-in">
+        <div class="mb-4">
+            <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #fbbf24;"></i>
+        </div>
+        <h1 class="market-title">🛒 Supplements & Fertilizers 🛒</h1>
+        <p class="market-subtitle">Buy Premium Supplements & Fertilizer at One Place</p>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row g-4">
+        {% for index in range(0, supplement_name | length) %}
+        {% if index != 4 %}
+        <div class="col-lg-4 col-md-6 product-grid fade-in" data-delay="{{ index * 0.1 }}">
+            <div class="card-modern product-card">
+                <div class="product-image-wrapper">
+                    {% if index==3 or index==5 or index==7 or index==11 or index==15 or index==18 or index==20 or index==23 or index==24 or index==25 or index==28 or index==38 %}
+                    <span class="product-badge badge-healthy">
+                        <i class="fas fa-check-circle"></i> Fertilizer
+                    </span>
+                    {% else %}
+                    <span class="product-badge badge-diseased">
+                        <i class="fas fa-pills"></i> Supplement
+                    </span>
+                    {% endif %}
+                    <img src="{{ supplement_image[index] }}" alt="{{ supplement_name[index] }}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='https://via.placeholder.com/600x400?text=Product+Image';">
+                </div>
+
+                <div class="product-content">
+                    {% if index==3 or index==5 or index==7 or index==11 or index==15 or index==18 or index==20 or index==23 or index==24 or index==25 or index==28 or index==38 %}
+                    <div class="product-type" style="color: #10b981;">
+                        <i class="fas fa-leaf"></i> Fertilizer - Healthy
+                    </div>
+                    {% else %}
+                    <div class="product-type" style="color: #ef4444;">
+                        <i class="fas fa-notes-medical"></i> Supplement - Diseased
+                    </div>
+                    {% endif %}
+
+                    <h3 class="product-name">{{ supplement_name[index] }}</h3>
+
+                    <p class="product-for">
+                        <i class="fas fa-info-circle"></i> For {{ disease[index] }}
+                    </p>
+
+                    <a href="{{ buy[index] }}" target="_blank" rel="noopener noreferrer nofollow" class="buy-btn">
+                        <i class="fas fa-shopping-bag"></i>Buy Product
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        {% endfor %}
     </div>
 </div>
-<div class="row p-3">
-    {% for index in range(0,supplement_name | length) %}
-    {% if index != 4 %}
-    <div class="col">
-        <div class=" p-5 bg-white shadow rounded-lg" style="height: 95%;">
-        <center>
-            {% if index==3 or index==5 or index==7 or index==11 or index==15 or index==18 or index==20 or
-            index==23 or
-            index==24 or index==25 or index==28 or index==38 %}
-            <h5>Fertilizer<b style="color: green;"> (Healthy):</b></h5>
-            {% else %}
-            <h5>Supplements<b style="color: red;"> (Diseased):</b></h5>
-            {% endif %}
-            <br>
-            <img src={{supplement_image[index]}} width="200" height="250">
-            <br>
-            <br>
-            <h6>For {{disease[index]}}</h6>
-            <p>{{supplement_name[index]}}</p>
 
-            <a target="_blank" href={{buy[index]}}><button type="button" class="btn btn-success"
-                    style="background-color: #05380b;">Buy Product</button></a>
-        </center>
-    </div>
-</div>
-{% endif %}
-{% endfor %}
-</div>
+<script>
+// Ensure all buy buttons are clickable
+document.addEventListener('DOMContentLoaded', function() {
+    // Apply animation delay from data attribute to avoid inline Jinja in CSS
+    var grids = document.querySelectorAll('.product-grid[data-delay]');
+    grids.forEach(function (el) {
+        var d = el.getAttribute('data-delay');
+        if (d) el.style.animationDelay = d + 's';
+    });
+});
+</script>
+
 {% endblock body %}
